@@ -23,6 +23,19 @@ data class JobMetrics(
 )
 
 object CsvExporter {
+    /**
+     * Escapes a CSV field value according to RFC 4180:
+     * - If the value contains comma, newline, or double quote, wrap it in double quotes
+     * - Escape any double quotes within the value by doubling them
+     */
+    private fun escapeCsvField(value: String): String {
+        return if (value.contains(',') || value.contains('\n') || value.contains('"')) {
+            "\"${value.replace("\"", "\"\"")}\""
+        } else {
+            value
+        }
+    }
+    
     fun exportMetrics(metrics: WorkflowMetrics, outputFile: String = "workflow_summary.csv", totalWorkflowRuns: Int = 0) {
         val file = File(outputFile)
         FileWriter(file).use { writer ->
@@ -41,7 +54,20 @@ object CsvExporter {
         val sanitizedJobName = jobMetrics.jobName
             .replace(Regex("[^a-zA-Z0-9_-]"), "_")
             .replace(Regex("_{2,}"), "_")
-        val fileName = "${outputDir}/gha_metrics_job_${sanitizedJobName}.csv"
+        
+        // Limit filename length to avoid filesystem limits (max 255 chars, leave room for path and extension)
+        // Use hash suffix if truncated to ensure uniqueness
+        val maxJobNameLength = 150
+        val fileNameBase = if (sanitizedJobName.length > maxJobNameLength) {
+            val truncated = sanitizedJobName.substring(0, maxJobNameLength)
+            // Use absolute value of hash code to avoid negative numbers in filename
+            val hash = kotlin.math.abs(sanitizedJobName.hashCode()).toString()
+            "${truncated}_${hash}"
+        } else {
+            sanitizedJobName
+        }
+        
+        val fileName = "${outputDir}/gha_metrics_job_${fileNameBase}.csv"
         val file = File(fileName)
         
         FileWriter(file).use { writer ->
@@ -53,7 +79,7 @@ object CsvExporter {
                 val jobMean = StatisticsCalculator.calculateMean(jobMetrics.jobDurations)
                 val jobMedian = StatisticsCalculator.calculateMedian(jobMetrics.jobDurations)
                 val jobP90 = StatisticsCalculator.calculateP90(jobMetrics.jobDurations)
-                writer.appendLine("Job Duration,${jobMetrics.jobName},${jobMean},${jobMedian},${jobP90},${jobMetrics.jobDurations.size}")
+                writer.appendLine("Job Duration,${escapeCsvField(jobMetrics.jobName)},${jobMean},${jobMedian},${jobP90},${jobMetrics.jobDurations.size}")
             }
             
             // Write aggregated step duration statistics
@@ -61,7 +87,7 @@ object CsvExporter {
                 val stepMean = StatisticsCalculator.calculateMean(jobMetrics.stepDurations)
                 val stepMedian = StatisticsCalculator.calculateMedian(jobMetrics.stepDurations)
                 val stepP90 = StatisticsCalculator.calculateP90(jobMetrics.stepDurations)
-                writer.appendLine("Step Duration (All Steps),${jobMetrics.jobName},${stepMean},${stepMedian},${stepP90},${jobMetrics.stepDurations.size}")
+                writer.appendLine("Step Duration (All Steps),${escapeCsvField(jobMetrics.jobName)},${stepMean},${stepMedian},${stepP90},${jobMetrics.stepDurations.size}")
             }
             
             // Write individual step statistics
@@ -70,7 +96,7 @@ object CsvExporter {
                     val stepMean = StatisticsCalculator.calculateMean(stepData.durations)
                     val stepMedian = StatisticsCalculator.calculateMedian(stepData.durations)
                     val stepP90 = StatisticsCalculator.calculateP90(stepData.durations)
-                    writer.appendLine("Step Duration,${stepName},${stepMean},${stepMedian},${stepP90},${stepData.durations.size}")
+                    writer.appendLine("Step Duration,${escapeCsvField(stepName)},${stepMean},${stepMedian},${stepP90},${stepData.durations.size}")
                 }
             }
         }
@@ -92,7 +118,7 @@ object CsvExporter {
                     val jobMean = StatisticsCalculator.calculateMean(jobMetrics.jobDurations)
                     val jobMedian = StatisticsCalculator.calculateMedian(jobMetrics.jobDurations)
                     val jobP90 = StatisticsCalculator.calculateP90(jobMetrics.jobDurations)
-                    writer.appendLine("$jobName,${jobMean},${jobMedian},${jobP90},${jobMetrics.jobDurations.size}")
+                    writer.appendLine("${escapeCsvField(jobName)},${jobMean},${jobMedian},${jobP90},${jobMetrics.jobDurations.size}")
                 }
             }
         }
@@ -113,7 +139,7 @@ object CsvExporter {
                         val stepMean = StatisticsCalculator.calculateMean(stepData.durations)
                         val stepMedian = StatisticsCalculator.calculateMedian(stepData.durations)
                         val stepP90 = StatisticsCalculator.calculateP90(stepData.durations)
-                        writer.appendLine("$jobName,$stepName,${stepMean},${stepMedian},${stepP90},${stepData.durations.size}")
+                        writer.appendLine("${escapeCsvField(jobName)},${escapeCsvField(stepName)},${stepMean},${stepMedian},${stepP90},${stepData.durations.size}")
                     }
                 }
             }
