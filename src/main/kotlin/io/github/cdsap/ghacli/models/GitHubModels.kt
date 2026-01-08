@@ -21,8 +21,8 @@ data class WorkflowRun(
 
 @Serializable
 data class WorkflowRunsResponse(
-    val total_count: Int,
-    val workflow_runs: List<WorkflowRun>
+    val total_count: Int = 0,
+    val workflow_runs: List<WorkflowRun> = emptyList()
 )
 
 @Serializable
@@ -48,7 +48,7 @@ data class JobStep(
 
 @Serializable
 data class JobsResponse(
-    val total_count: Int,
-    val jobs: List<Job>
+    val total_count: Int = 0,
+    val jobs: List<Job> = emptyList()
 )
 
