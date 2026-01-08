@@ -5,17 +5,13 @@ A command-line tool for analyzing GitHub Actions workflow runs, calculating dura
 ## Features
 
 - 📊 Calculate mean, median, and P90 statistics for workflow, job, and step durations
-- 📈 Track success rates for jobs and steps
 - 📅 Filter workflow runs by date range
-- ✅ Filter by success status
 - 🔄 Handle reruns (include, exclude, or only reruns)
 - 📁 Export comprehensive metrics to CSV files:
   - Overall metrics summary
   - Per-job metrics (with all steps)
-  - Master metrics file (all data organized by category)
   - Jobs summary
   - Steps summary
-  - Success rates summary
 
 ## Installation
 
@@ -47,7 +43,7 @@ A command-line tool for analyzing GitHub Actions workflow runs, calculating dura
    # Add to PATH (add to ~/.bashrc or ~/.zshrc)
    export PATH=$PATH:$(pwd)/build/install/ghacli/bin
    ```
-   
+
    Then you can use `ghacli` from anywhere.
 
 ## Usage
@@ -329,12 +325,6 @@ Master and summary CSV files exported:
 
 ```bash
 ./gradlew build
-```
-
-### Running Locally (Development)
-
-```bash
-./gradlew run --args="--token TOKEN --owner OWNER --repo REPO"
 ```
 
 ## License
