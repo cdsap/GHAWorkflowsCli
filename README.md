@@ -27,28 +27,26 @@ chmod 0757 ghacli
 After installing the CLI, run:
 
 ```bash
-./ghacli --token YOUR_TOKEN --owner OWNER --repo REPO
+./ghacli --token YOUR_TOKEN --owner OWNER --repo REPO --workflow-id WORKFLOW_ID
 ```
-
 
 ### Required Parameters
 
 - `--token`: GitHub personal access token (or set `GITHUB_TOKEN` environment variable)
 - `--owner`: Repository owner (e.g., `gradle`, `octocat`)
 - `--repo`: Repository name (e.g., `Hello-World`)
+- `--workflow-id`: Workflow ID or filename (e.g., `ci.yml`, `build-verification.yml`)
 
 ### Optional Parameters
 
 - `--branch`: Filter by branch name (e.g., `main`, `develop`)
-- `--workflow-id`: Workflow ID or filename (e.g., `ci.yml`, `build-verification.yml`)
 - `--max-builds`: Maximum number of workflow runs to analyze (default: 10)
-- `--csv-output`: Output CSV file path (default: `gha_metrics.csv`)
 - `--from-date`: Filter workflow runs from this date (format: `YYYY-MM-DD`, e.g., `2024-01-01`)
 - `--to-date`: Filter workflow runs to this date (format: `YYYY-MM-DD`, e.g., `2024-12-31`)
 - `--only-success`: Only process successful workflow runs
 - `--exclude-reruns`: Exclude reruns, only process original workflow runs
 - `--only-reruns`: Only process reruns (exclude original runs)
-- `--concurrent-calls`: Number of concurrent API calls (default: 4)
+- `--concurrent-calls`: Number of concurrent API calls (default: 8)
 
 ### Examples
 
@@ -99,6 +97,7 @@ ghacli \
   --token $GITHUB_TOKEN \
   --owner gradle \
   --repo android-cache-fix-gradle-plugin \
+  --workflow-id build-verification.yml \
   --from-date 2025-12-01 \
   --to-date 2026-01-06 \
   --max-builds 200 \
@@ -145,17 +144,18 @@ P90:    25s (25s)
 Count:  850
 
 ============================================================
-Overall metrics exported to: gha_metrics.csv
-Per-job metrics exported (including all steps):
+All metrics exported to: output/owner-repo-workflowId-timestamp/
+
+Files created:
+  - workflow_summary.csv
+Per-job metrics (including all steps):
   - gha_metrics_job_build.csv
   - gha_metrics_job_test.csv
   - gha_metrics_job_deploy.csv
 
-Master and summary CSV files exported:
-  - gha_master_metrics.csv (all metrics organized by category)
+Summary files:
   - gha_jobs_summary.csv (jobs summary)
   - gha_steps_summary.csv (steps summary)
-  - gha_success_rates_summary.csv (success rates summary)
 ============================================================
 ```
 

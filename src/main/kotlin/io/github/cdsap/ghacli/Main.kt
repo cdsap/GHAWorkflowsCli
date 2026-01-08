@@ -29,7 +29,7 @@ class GHAClI : CliktCommand() {
     private val repo by option().required()
     private val owner by option().required()
     private val branch by option()
-    private val workflowId by option()
+    private val workflowId by option().required()
     private val maxBuilds by option().int().default(10)
     private val fromDate by option(
         help = "Filter workflow runs from this date (format: YYYY-MM-DD, e.g., 2024-01-01)"
@@ -60,7 +60,7 @@ class GHAClI : CliktCommand() {
             // Parse dates if provided
             val fromDateParsed = parseDate(fromDate, "from-date")
             val toDateParsed = parseDate(toDate, "to-date")
-            
+
             // Fetch workflow runs
             val response = apiClient.getWorkflowRuns(
                 owner = owner,
@@ -71,7 +71,7 @@ class GHAClI : CliktCommand() {
                 createdFrom = fromDateParsed,
                 createdTo = toDateParsed
             )
-            
+
             if (response.total_count == 0 && response.workflow_runs.isEmpty()) {
                 echo("No workflow runs found matching the specified criteria.")
                 return@runBlocking
