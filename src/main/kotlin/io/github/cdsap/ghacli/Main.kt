@@ -60,6 +60,7 @@ class GHAClI : CliktCommand() {
             // Parse dates if provided
             val fromDateParsed = parseDate(fromDate, "from-date")
             val toDateParsed = parseDate(toDate, "to-date")
+            
             // Fetch workflow runs
             val response = apiClient.getWorkflowRuns(
                 owner = owner,
@@ -70,6 +71,11 @@ class GHAClI : CliktCommand() {
                 createdFrom = fromDateParsed,
                 createdTo = toDateParsed
             )
+            
+            if (response.total_count == 0 && response.workflow_runs.isEmpty()) {
+                echo("No workflow runs found matching the specified criteria.")
+                return@runBlocking
+            }
             // Determine rerun handling
             val rerunHandling = when {
                 excludeReruns && onlyReruns -> {

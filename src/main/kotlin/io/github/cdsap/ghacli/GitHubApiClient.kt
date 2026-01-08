@@ -65,14 +65,48 @@ class GitHubApiClient(private val token: String? = null) {
             }
         }
 
-        return client.get(url) {
-            headers {
-                append(HttpHeaders.Accept, "application/vnd.github.v3+json")
-                if (token != null) {
-                    append(HttpHeaders.Authorization, "token $token")
+        println("=".repeat(60))
+        println("FETCHING WORKFLOW RUNS")
+        println("=".repeat(60))
+        println("Repository: $owner/$repo")
+        if (workflowId != null) {
+            println("Workflow ID: $workflowId")
+        } else {
+            println("Workflow: All workflows")
+        }
+        if (branch != null) {
+            println("Branch: $branch")
+        }
+        println("Max builds: $perPage")
+        if (createdFrom != null) {
+            println("From date: ${createdFrom.format(DateTimeFormatter.ISO_DATE)}")
+        }
+        if (createdTo != null) {
+            println("To date: ${createdTo.format(DateTimeFormatter.ISO_DATE)}")
+        }
+        println("Request URL: $url")
+        println("=".repeat(60))
+
+        return try {
+            val response = client.get(url) {
+                headers {
+                    append(HttpHeaders.Accept, "application/vnd.github.v3+json")
+                    if (token != null) {
+                        append(HttpHeaders.Authorization, "token $token")
+                    }
                 }
-            }
-        }.body()
+            }.body<WorkflowRunsResponse>()
+            
+            println("Response received: total_count=${response.total_count}, workflow_runs=${response.workflow_runs.size}")
+            println("=".repeat(60) + "\n")
+            
+            response
+        } catch (e: Exception) {
+            println("Error fetching workflow runs: ${e.message}")
+            println("Returning empty response")
+            println("=".repeat(60) + "\n")
+            WorkflowRunsResponse(total_count = 0, workflow_runs = emptyList())
+        }
     }
 
     suspend fun getWorkflowRunJobs(
